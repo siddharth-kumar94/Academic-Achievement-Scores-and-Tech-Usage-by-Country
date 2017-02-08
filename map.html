@@ -150,20 +150,7 @@
 									return 'grey';
 								}
 							});
-							
-						/*
-						svg.selectAll('circle')
-							.style('fill', function(d) {
-								if(countries.indexOf(d[0]) !== -1) {
-									var norm = data[countries.indexOf(d[0])][norm_dict[subject]];
-									return d3.interpolateRdYlGn(norm);
-								} else {
-									return 'grey';
-								}
-							});
-						*/
-						
-					
+	
 						d3.selectAll('.country').on("mouseenter", function(d) {
 						
 							var this_country = d3.select(this);
