@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="https://d3js.org/d3-color.v1.min.js"></script>
+	<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+	<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+	<style>
+		div.scores_buttons {
+        position: fixed;
+        top: 5px;
+        left: 50px;
+      }
+      div.scores_buttons div {
+        background-color: white;
+        padding: 3px;
+        margin: 10px;
+        font-family: Verdana;
+		border: 2px solid black;
+      }
+      h2 {
+      	vertical-align: top;
+      	text-align: center;
+      	font-family: Verdana; 	
+      }
+      h5 {
+      	vertical-align: top;
+      	text-align: center;
+      	font-family: Verdana;
+      }
+            
+	</style>
+	<script type="text/javascript">
+	
+		function draw(geo_data) {
+		
+			var current_subject = "";
+			
+			"use strict"
+			var margin = 0,
+				width = 1200 - margin,
+				height = 610 - margin;
+				
+			var title = d3.select("body")
+				.append("h2")
+				.text('Academic Achievement Scores & Tech Use by Country');
+				
+			var subtext = d3.select('body')
+				.append('h5')
+				.text('Mouse over each country to get rates at which students use technology at school and home');
+			
+			var svg = d3.select("body")
+				.append("svg")
+				.attr('class', 'border')
+				.attr("width", width + margin)
+				.attr("height", height + margin)
+				.append('g')
+				.attr('class', 'map');
+				
+				
+			var projection = d3.geo.mercator()
+				.scale(148)
+				.translate([width/2, height/1.4]);
+			
+			// Remove Antarctica
+			geo_data['features'].splice(6, 1);
+		
+			var path = d3.geo.path().projection(projection);
+		
+			var map = svg.selectAll('path')
+				.data(geo_data.features)
+				.enter()
+				.append('path')
+				.attr('d', path)
+				.attr('class', 'country')
+				.style('fill', 'grey')
+				.style('stroke', 'grey')
+				.style('stroke-width', 0.5);
+                     	
+            var linearGradient = svg.append('defs')
+            	.append('linearGradient')
+            	.attr('id', 'gradient')
+            	.attr('x1', '0%')
+            	.attr('y1', '0%')
+            	.attr('x2', '0%')
+            	.attr('y2', '100%')
+            	.selectAll('stop')
+            	.data(function() {
+            		var intlist = [];
+            		for (var i = 0; i < 100; i++) {
+            			intlist.push(i);
+            		}
+            		return intlist;
+            	})
+            	.enter()
+            	.append('stop')
+            	.attr('offset', function(d) {
+            		return (d.toString() + '%');
+            	})
+            	.attr('stop-color', function(d) {
+            		return d3.interpolateRdYlGn(d/100);
+            	});
+            	
+            var legendx = 40;
+            var legendy = 150;
+            var legendHeight = 250;
+            var legendWidth = 20;
+            	
+            
+            svg.append('g')
+            	.append('text')
+            	.attr('x', legendx)
+            	.attr('y', legendy - 20)
+            	.attr('class', 'legend')
+            	.style('font-size', '15px')
+            	.style('font-family', 'Verdana')
+            	.text('Average Test Score');
+            	
+            var gradientLegend = svg.append('g')
+            	.append('rect')
+            	.attr('class', 'legend')
+            	.attr('x', legendx)
+            	.attr('y', legendy)
+            	.attr('height', legendHeight)
+            	.attr('width', legendWidth)
+            	.style('fill', "url(#gradient)");
+            	
+            var legendLabels = [{label: 'Below Average', ypos: legendy + 4},
+            	{label: 'Average', ypos: legendy + .5*legendHeight + 4},
+            	{label:'Above Average', ypos: legendy + legendHeight + 4}];
+            
+            svg.append('g')
+            	.selectAll('text')
+            	.data(legendLabels)
+            	.enter()
+            	.append('text')
+            	.attr('class', 'legend')
+            	.attr('x', legendx + 20)
+            	.attr('y', function(d) {
+            		return d.ypos;
+            	})
+            	.style('font-size', '10px')
+            	.style('font-family', 'Verdana')
+            	.text(function(d) {
+            		return d.label;
+            	})
+            	
+            var missing_countries = [{type: "Feature", properties: {name: "Singapore"}, geometry: {coordinates: [[[1100, 300]]]}},
+            						{type: "Feature", properties: {name: "Liechtenstein"}, geometry: {coordinates: [[[1100, 330]]]}}];
+            
+            svg.append('g')
+            	.selectAll('circle')
+            	.data(missing_countries)
+            	.enter()
+            	.append('circle')
+            	.attr('class', 'country')
+            	.attr('cx', function(d) {
+            		return d.geometry.coordinates[0][0][0];
+            	})
+            	.attr('cy', function(d) {
+            		return d.geometry.coordinates[0][0][1];
+            	})
+            	.attr('r', 5);
+            	
+            svg.append('g')
+            	.selectAll('text')
+            	.data(missing_countries)
+            	.enter()
+            	.append('text')
+            	.attr('x', function(d) {
+            		return d.geometry.coordinates[0][0][0] + 7;
+            	})
+            	.attr('y', function(d) {
+            		return d.geometry.coordinates[0][0][1] + 4;
+            	})
+            	.style('font-family', 'Verdana')
+            	.style('font-size', '12px')
+            	.text(function(d) {
+            		return d.properties.name;
+            	});
+				
+				function update(subject) {
+				
+					var norm_dict = {}
+					
+					norm_dict['Math'] = 'Norm Math';
+					norm_dict['Science'] = 'Norm Science';
+					norm_dict['Reading'] = 'Norm Reading';
+					
+					var score_dict = {}
+					score_dict['Math'] = 'Mean: Math Score';
+					score_dict['Science'] = 'Mean: Science Score';
+					score_dict['Reading'] = 'Mean: Reading Score';
+					
+					function color_countries(data) {		
+						data.sort(function(a, b) {
+							if (a['Mean: ' + subject + ' Score'] > b['Mean: ' + subject + ' Score']) {
+								return -1;
+							}
+							if (a['Mean: ' + subject + ' Score'] < b['Mean: ' + subject + ' Score']) {
+								return 1;
+							}
+							return 0;
+						});
+						
+						var countries = [];
+						for (var i = 0; i < data.length; i++) {
+							countries.push(data[i]['Country']);
+						}
+		
+						function set_color(d) {
+							if(countries.indexOf(d.properties.name) !== -1) {
+								var norm = data[countries.indexOf(d.properties.name)][norm_dict[subject]];
+								return d3.interpolateRdYlGn(norm);
+							} else {
+								return 'grey';
+							}
+						}
+									  
+						svg.selectAll('.country')
+							.style('fill', set_color)
+							.style('stroke', function(d) {
+								if (countries.indexOf(d.properties.name) !== -1) {
+									return "black";
+								} else {
+									return 'grey';
+								}
+							});
+	
+						d3.selectAll('.country').on("mouseenter", function(d) {
+						
+							var this_country = d3.select(this);
+							var this_country_name = this_country[0][0].__data__.properties.name;
+							var label_width = 500;
+							var label_height = 320;
+							var x_margin = 10;
+							var median_length = 20;
+							var minor_bar_indent = 90;
+							var minor_bar_length = (label_width - (2 * x_margin) - median_length - minor_bar_indent) / 2
+							var minor_bar_height = 20
+						
+							var x = projection(d.geometry.coordinates[0][0])[0];
+						
+							if (isNaN(x)) {
+								x = projection(d.geometry.coordinates[0][0][0])[0];
+							}
+						
+							var y = projection(d.geometry.coordinates[0][0])[1];
+						
+							if (isNaN(y)) {
+								y = projection(d.geometry.coordinates[0][0][0])[1];
+							}
+						
+							var border_height = d3.select('.border')[0][0].height.baseVal.value;
+							var border_width = d3.select('.border')[0][0].width.baseVal.value;
+						
+							if (countries.indexOf(d.properties.name) !== -1) {
+							
+								d3.select(this)
+									.style('opacity', .5);
+						
+								var score = Math.ceil(data[countries.indexOf(d.properties.name)][score_dict[subject]]);
+								var norm = data[countries.indexOf(d.properties.name)][norm_dict[subject]];
+					
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('rect')
+									.data(this_country)
+									.enter()
+									.append('rect')
+									.attr('x', function () {
+										if (label_width + x > border_width) {
+											x = border_width - label_width - 3;
+										}
+										return x;
+									})
+									.attr('y', function() {
+										if (label_height + y > border_height) {
+											y = border_height - label_height - 3;
+										}
+										return y;
+									})
+									.attr('width', label_width)
+									.attr('height', label_height)
+									.style('fill', 'white')
+									.style('stroke', 'black')
+									.style('stroke-width', 3);
+							
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('text')
+									.data(this_country)
+									.enter()
+									.append('text')
+									.attr('x', x + x_margin)
+									.attr('y', y + 30)
+									.style('font-size', '25px')
+									.style('font-family', 'Verdana')
+									.style('fill', 'black')
+									.text(function (d) {
+										return d[0].__data__.properties.name;	
+									});
+								
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('rect')
+									.data(geo_data.features)
+									.enter()
+									.append('rect')
+									.attr('x', x + x_margin)
+									.attr('y', y + 45)
+									.attr('width', label_width - 20)
+									.attr('height', 20)
+									.style('fill', 'white')
+									.style('stroke', 'black')
+									.style('stroke-width', .5);
+								
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('rect')
+									.data(this_country)
+									.enter()
+									.append('rect')
+									.attr('x', x + x_margin)
+									.attr('y', y + 45)
+									.attr('width', (label_width - 30) * norm + 10)
+									.attr('height', 20)
+									.style('fill', d3.interpolateRdYlGn(norm))
+									.style('stroke', 'black')
+									.style('stroke-width', .5);
+							
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('text')
+									.data(this_country)
+									.enter()
+									.append('text')
+									.attr('x', x + x_margin)
+									.attr('y', y + 90)
+									.style('font-size', '20px')
+									.style('font-family', 'Verdana')
+									.style('fill', 'black')
+									.text(subject + ' Score: ' + score);
+							
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('text')
+									.data(this_country)
+									.enter()
+									.append('text')
+									.attr('x', x + x_margin)
+									.attr('y', y + 115)
+									.style('font-size', '20px')
+									.style('font-family', 'Verdana')
+									.style('fill', 'black')
+									.text('Rank: ' + (countries.indexOf(this_country_name) + 1));
+								
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('text')
+									.data(this_country)
+									.enter()
+									.append('text')
+									.attr('x', x + x_margin + minor_bar_indent)
+									.attr('y', y + 130)
+									.style('font-size', '15px')
+									.style('font-family', 'Verdana')
+									.style('fill', 'black')
+									.text('At School');
+								
+								svg.append('g')
+									.attr('class', 'label')
+									.selectAll('text')
+									.data(this_country)
+									.enter()
+									.append('text')
+									.attr('x', x + x_margin + minor_bar_indent + minor_bar_length + median_length)
+									.attr('y', y + 130)
+									.style('font-size', '15px')
+									.style('font-family', 'Verdana')
+									.style('fill', 'black')
+									.text('At Home');
+							
+								function make_tech_score_bar (x, y, stat) {
+									var data_clone = data.slice(0);
+									
+									
+									data_clone.sort(function(a, b) {
+										return b[stat] - a[stat];
+									});
+									
+									var subject_sorted_countries = [];
+									for (var i = 0; i < data_clone.length; i++) {
+										subject_sorted_countries.push(data_clone[i]['Country']);
+									}
+									
+									svg.append('g')
+										.attr('class', 'label')
+										.selectAll('text')
+										.data(this_country)
+										.enter()
+										.append('text')
+										.attr('x', x)
+										.attr('y', y - 5)
+										.style('fill', 'black')
+										.style('font-size', '12px')
+										.style('font-family', 'Verdana')
+										.text(Math.ceil(data_clone[subject_sorted_countries.indexOf(this_country_name)][stat] * 100) + '%' +
+											' - Rank: ' + (subject_sorted_countries.indexOf(this_country_name) + 1));
+										
+								
+									svg.append('g')
+										.attr('class', 'label')
+										.selectAll('rect')
+										.data(this_country)
+										.enter()
+										.append('rect')
+										.attr('x', x)
+										.attr('y', y)
+										.attr('width', minor_bar_length)
+										.attr('height', minor_bar_height)
+										.style('fill', 'white')
+										.style('stroke', 'black')
+										.style('stroke-width', .5);
+								
+									svg.append('g')
+										.attr('class', 'label')
+										.selectAll('rect')
+										.data(this_country)
+										.enter()
+										.append('rect')
+										.attr('x', x)
+										.attr('y', y)
+										.attr('width', function(d) {
+											return minor_bar_length * data[countries.indexOf(this_country_name)][stat];
+										})
+										.attr('height', minor_bar_height)
+										.style('fill', function(d) {
+											return d3.interpolateRdYlGn(data[countries.indexOf(this_country_name)][stat]);
+										})
+										.style('stroke', 'black')
+										.style('stroke-width', .5);
+								}
+							
+								function make_tech_text (y, tech) {
+									svg.append('g')
+										.attr('class', 'label')
+										.selectAll('text')
+										.data(this_country)
+										.enter()
+										.append('text')
+										.attr('x', x + x_margin)
+										.attr('y', y)
+										.style('font-size', '15px')
+										.style('font-family', 'Verdana')
+										.style('fill', 'black')
+										.text(tech);
+								}
+							
+								make_tech_text(y + 170, 'Internet');
+								make_tech_score_bar(x + x_margin + minor_bar_indent, y + 155, 'Internet - School %');
+								make_tech_score_bar(x + x_margin + minor_bar_length + median_length + minor_bar_indent, y + 155, 'Internet - Home %');
+							
+								make_tech_text(y + 215, 'Desktop');
+								make_tech_score_bar(x + x_margin + minor_bar_indent, y + 200, 'Desktop - School %');
+								make_tech_score_bar(x + x_margin + minor_bar_length + median_length + minor_bar_indent, y + 200, 'Desktop - Home %');
+							
+								make_tech_text(y + 260, 'Laptop');
+								make_tech_score_bar(x + x_margin + minor_bar_indent, y + 245, 'Laptop - School %');
+								make_tech_score_bar(x + x_margin + minor_bar_length + median_length + minor_bar_indent, y + 245, 'Laptop - Home %');
+							
+								make_tech_text(y + 305, 'Tablet');
+								make_tech_score_bar(x + x_margin + minor_bar_indent, y + 290, 'Tablet - School %');
+								make_tech_score_bar(x + x_margin + minor_bar_length + median_length + minor_bar_indent, y + 290, 'Tablet - Home %');
+							
+								svg.selectAll('.label').attr('pointer-events', 'none');
+							
+							}
+						});
+					
+						d3.selectAll('.country').on("mouseleave", function(d) {
+							d3.select(this).style('opacity', 1);
+							svg.selectAll('.label').remove();
+						});
+					}
+					
+				d3.csv('pisa_data.csv', function(d) {
+					d['Mean: Math Score'] = +d['Mean: Math Score'];
+					d['Mean: Science Score'] = +d['Mean: Science Score'];
+					d['Mean: Reading Score'] = +d['Mean: Reading Score'];
+					return d;
+				}, color_countries);
+				
+			}
+			
+				current_subject = 'Math';
+				update(current_subject);
+				
+				var subjects = ['Math', 'Science', 'Reading'];
+					
+				var buttons = d3.select("body")
+					.append("div")
+					.attr("class", "scores_buttons")
+					.selectAll("div")
+					.data(subjects)
+					.enter()
+					.append("div")
+					.style("color", function(d) {
+						if (d === 'Math') {
+							return 'white';
+						}
+					})
+					.style('background-color', function(d) {
+						if (d === 'Math') {
+							return 'black';
+						}
+					})
+					.text(function(d) {
+						return d;
+					});
+					
+				buttons.on('mouseenter', function() {
+					if (d3.select(this)[0][0].__data__ != current_subject) {
+						d3.select(this)
+							.style('background-color', 'grey')
+							.style('color', 'white');
+					}
+				});
+				
+				buttons.on('mouseleave', function() {
+					if (d3.select(this)[0][0].__data__ !== current_subject) {
+						d3.select(this)
+							.style('background-color', 'white')
+							.style('color', 'black');
+					}
+				});
+                     
+            	buttons.on("click", function(d) {
+                    d3.select(".scores_buttons")
+                      .selectAll("div")
+                      .transition()
+                      .duration(500)
+                      .style("background-color", "white")
+                      .style('color', 'black');
+                      
+                    d3.select(this)
+                      .transition()
+                      .duration(500)
+                      .style("background-color", "black")
+                      .style("color", "white");
+                    current_subject = d;
+                    update(d);
+                   
+                });			
+		};
+	</script>
+</head>
+
+<body>
+	<script type="text/javascript">
+		d3.json("world_countries.json", draw);
+		
+	</script>
+</body>
+
+</html>
