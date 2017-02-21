@@ -21,12 +21,12 @@
         font-family: Verdana;
 		border: 2px solid black;
       }
+      
       h2 {
       	vertical-align: top;
       	text-align: center;
       	font-family: Verdana;
       	margin: 20px;
-
       }
       
       h5 {
@@ -34,7 +34,6 @@
       	text-align: center;
       	font-family: Verdana;
       	margin: 5px;
-
       }
       
       h6 {
@@ -43,7 +42,6 @@
       	font-family: Verdana;
       	font-weight: normal;
       	margin: 0px;
-      	
       }
          
 	</style>
@@ -65,7 +63,6 @@
 			var subtext = d3.select('body')
 				.append('h5')
 				.text('Mouse over each country to get rates at which students use technology at school and home');
-			
 			
 			d3.select('body')
 				.append('h6')
@@ -130,7 +127,6 @@
             var legendHeight = 250;
             var legendWidth = 20;
             	
-            
             svg.append('g')
             	.append('text')
             	.attr('x', legendx)
@@ -149,6 +145,7 @@
             	.attr('width', legendWidth)
             	.style('fill', "url(#gradient)");
             	
+            //Sets the position and text for legend labels
             var legendLabels = [{label: 'Below', ypos: legendy + 4},
             	{label: 'Average', ypos: legendy + .5*legendHeight + 4},
             	{label:'Above', ypos: legendy + legendHeight + 4}];
@@ -232,12 +229,14 @@
 							return 0;
 						});
 						
+						// array with names of all countries in dataset
 						var countries = [];
 						for (var i = 0; i < data.length; i++) {
 							countries.push(data[i]['Country']);
 						}
 						
 						// sets color of country based on test score using a color interpolator
+						// only colors with interpolator if country is in dataset, otherwise sets to grey
 						function set_color(d) {
 							if(countries.indexOf(d.properties.name) !== -1) {
 								var norm = data[countries.indexOf(d.properties.name)][norm_dict[subject]];
@@ -246,7 +245,8 @@
 								return 'grey';
 							}
 						}
-									  
+						
+						// sets country border stroke to black for countries in dataset, otherwise grey			  
 						svg.selectAll('.country')
 							.style('fill', set_color)
 							.style('stroke', function(d) {
@@ -271,16 +271,21 @@
 								var minor_bar_indent = 90;
 								var minor_bar_length = (label_width - (2 * x_margin) - median_length - minor_bar_indent) / 2
 								var minor_bar_height = 20
-							
+								
+								// obtains border height and width from out of scope variables
 								var border_height = d3.select('.border')[0][0].height.baseVal.value;
 								var border_width = d3.select('.border')[0][0].width.baseVal.value;
 							
 								//Determine label coordinates
 								function get_label_coords(d) {
 									var coords = d.geometry.coordinates.slice(0);
+									
+									/*
+									unpacks nested coordinates in geojson format to make
+									it easier to find min and max coordinates later
+									*/
 									function unpack_nested_coords(coords) {
 										var unpacked_coords = []
-										
 										for (var k = 0; k < coords.length; k++) {
 											for (var i = 0; i < coords[k].length; i++) {
 												if (coords[k][i][0] instanceof Array) {
@@ -296,7 +301,11 @@
 									}
 								
 									unpacked_coords = unpack_nested_coords(coords);
-
+									
+									/*
+									sorts coordinates by x-coordinate after projection
+									in descending order
+									*/
 									unpacked_coords.sort(function(a, b) {
 										var x1 = projection(a)[0];
 										var x2 = projection(b)[0];
@@ -304,11 +313,12 @@
 										return x2 - x1;
 									});
 								
-								
 									var x = projection(unpacked_coords[0])[0];
 									var y = projection(unpacked_coords[0])[1];
 								
 									var label_coords = [];
+									
+									// x-distance label deviates from border of country
 									var label_buffer = 5;
 
 									if (x < border_width/2) {
@@ -324,23 +334,37 @@
 							
 								var label_coords = get_label_coords(d);
 								var x = label_coords[0];
+								
+								/*
+								sets x-coordinate for Russia due to special case, since Russia
+								appears on both sides of the map in mercator projection
+								*/
 								if (d.id === 'RUS') {
 									x = 165;
 								}
+								
+								/*
+								adds more deviation to countries displayed as circles
+								*/
 								if (d.id === 'SIN' | d.id === 'LIE') {
 									x -= 7;
 								}
+								
 								var y = label_coords[1];
-						
-							
+								
+								// highlights country that is being moused over
 								d3.select(this)
 									.style('opacity', .3)
 									.style('stroke', 'red')
 									.style('stroke-width', 2);
 	
+								// computes score of country in particular subject
 								var score = Math.ceil(data[countries.indexOf(d.properties.name)][score_dict[subject]]);
+								
+								// normalized value of the score for interpolator
 								var norm = data[countries.indexOf(d.properties.name)][norm_dict[subject]];
 					
+								// appends country label for country being mouse over
 								svg.append('g')
 									.attr('class', 'label')
 									.selectAll('rect')
@@ -459,16 +483,19 @@
 								// creates a tech usage percentage bar in the label 
 								function make_tech_score_bar (x, y, stat) {
 									var data_clone = data.slice(0);
-
+									
+									// sorts country list according to tech usage
 									data_clone.sort(function(a, b) {
 										return b[stat] - a[stat];
 									});
 									
+									// takes country name from sorted list
 									var subject_sorted_countries = [];
 									for (var i = 0; i < data_clone.length; i++) {
 										subject_sorted_countries.push(data_clone[i]['Country']);
 									}
 									
+									// computes rank by finding index of country in sorted list
 									svg.append('g')
 										.attr('class', 'label')
 										.selectAll('text')
@@ -532,6 +559,7 @@
 										.text(tech);
 								}
 							
+								// Creates labels for Internet, Desktop, Laptop, and Tablet
 								make_tech_text(y + 175, 'Internet');
 								make_tech_score_bar(x + x_margin + minor_bar_indent, y + 160, 'Internet - School %');
 								make_tech_score_bar(x + x_margin + minor_bar_length + median_length + minor_bar_indent, y + 160, 'Internet - Home %');
@@ -548,11 +576,13 @@
 								make_tech_score_bar(x + x_margin + minor_bar_indent, y + 295, 'Tablet - School %');
 								make_tech_score_bar(x + x_margin + minor_bar_length + median_length + minor_bar_indent, y + 295, 'Tablet - Home %');
 							
+								//ensures that the labels don't interfere with the mouse when hovering over countries
 								svg.selectAll('.label').attr('pointer-events', 'none');
 							
 							}
 						});
-					
+						
+						// resets countries to original state when mouse leaves
 						d3.selectAll('.country').on("mouseleave", function(d) {
 							if (countries.indexOf(d.properties.name) !== -1) {
 								d3.select(this)
@@ -574,7 +604,8 @@
 				}, color_countries);
 				
 			}
-			
+				
+				// Initialized map to display information for Overall score
 				current_subject = 'Overall';
 				update(current_subject);
 				
@@ -587,6 +618,7 @@
 					.data(subjects)
 					.enter()
 					.append("div")
+					// initialized button to show "Overall" as currently selected
 					.style("color", function(d) {
 						if (d === 'Overall') {
 							return 'white';
@@ -600,7 +632,8 @@
 					.text(function(d) {
 						return d;
 					});
-					
+				
+				// highlights buttons when being moused over	
 				buttons.on('mouseenter', function() {
 					if (d3.select(this)[0][0].__data__ != current_subject) {
 						d3.select(this)
@@ -609,6 +642,7 @@
 					}
 				});
 				
+				// resets buttons to original state when mouse leaves
 				buttons.on('mouseleave', function() {
 					if (d3.select(this)[0][0].__data__ !== current_subject) {
 						d3.select(this)
@@ -616,7 +650,11 @@
 							.style('color', 'black');
 					}
 				});
-                     
+                
+                /*
+                changes appearance of buttons when clicked and updates map to subject
+                that is clicked on
+                */     
             	buttons.on("click", function(d) {
                     d3.select(".scores_buttons")
                       .selectAll("div")
