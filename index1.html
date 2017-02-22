@@ -623,7 +623,7 @@
 					d['Mean: Science Score'] = +d['Mean: Science Score'];
 					d['Mean: Reading Score'] = +d['Mean: Reading Score'];
 					d['Mean: Overall Score'] = (+d['Mean: Math Score'] + +d['Mean: Science Score'] + +d['Mean: Reading Score'])/3;
-					d['Norm Overall'] = (+d['Norm Math'] + +d['Norm Science'] + +d['Norm Reading'])/3;
+					d['Norm Overall'] = (+d['Mean: Overall Score'] - 399.9058) / 152.0382;
 					return d;
 				}, color_countries);
 				
