@@ -70,6 +70,8 @@ function draw(geo_data) {
 		.attr('x2', '0%')
 		.attr('y2', '100%')
 		.selectAll('stop')
+		
+		//splits gradient into 100 "stops" -- each corresponding to a specific color
 		.data(function() {
 			var intlist = [];
 			for (var i = 0; i < 100; i++) {
@@ -79,6 +81,8 @@ function draw(geo_data) {
 		})
 		.enter()
 		.append('stop')
+		
+		//sets offset and stop-color according to interpolateRdYlGn scale
 		.attr('offset', function(d) {
 			return (d.toString() + '%');
 		})
@@ -557,12 +561,16 @@ function draw(geo_data) {
 					}
 				});
 			}
-			
+		
+		// loads and passes PISA data to color_countries function
 		d3.csv('pisa_data.csv', function(d) {
+			// Converts data to numeric form
 			d['Mean: Math Score'] = +d['Mean: Math Score'];
 			d['Mean: Science Score'] = +d['Mean: Science Score'];
 			d['Mean: Reading Score'] = +d['Mean: Reading Score'];
 			d['Mean: Overall Score'] = (+d['Mean: Math Score'] + +d['Mean: Science Score'] + +d['Mean: Reading Score'])/3;
+			
+			// Normalizes overall scores since they weren't provided in dataset
 			d['Norm Overall'] = (+d['Mean: Overall Score'] - 399.9058) / 152.0382;
 			return d;
 		}, color_countries);
