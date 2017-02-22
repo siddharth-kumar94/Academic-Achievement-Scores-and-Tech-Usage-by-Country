@@ -1,0 +1,45 @@
+/* my_css.css */
+
+ div.scores_buttons {
+	position: fixed;
+	top: 5px;
+	left: 50px;
+  }
+  div.scores_buttons div {
+	background-color: white;
+	padding: 3px;
+	margin: 10px;
+	font-family: Verdana;
+	border: 2px solid black;
+  }
+  
+  h2 {
+	vertical-align: top;
+	text-align: center;
+	font-family: Verdana;
+	margin: 20px;
+  }
+  
+  h6 {
+	vertical-align: top;
+	text-align: center;
+	font-family: Verdana;
+	font-weight: normal;
+	margin: 2px;
+  }
+  
+  h4 {
+	vertical-align: top;
+	text-align: center;
+	font-family: Verdana;
+	font-weight: normal;
+	margin: 0px;
+	
+  }
+  
+  .directions {
+	vertical-align: top;
+	text-align: center;
+	font-family: Verdana;
+	margin: 10px;
+  }
