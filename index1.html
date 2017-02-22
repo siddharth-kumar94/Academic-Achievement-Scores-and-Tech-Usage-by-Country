@@ -29,20 +29,27 @@
       	margin: 20px;
       }
       
-      h5 {
-      	vertical-align: top;
-      	text-align: center;
-      	font-family: Verdana;
-      	margin: 5px;
-      }
       
       h6 {
       	vertical-align: top;
       	text-align: center;
       	font-family: Verdana;
       	font-weight: normal;
+      	margin: 10px;
+      }
+      
+      h4 {
+      	vertical-align: top;
+      	text-align: center;
+      	font-family: Verdana;
+      	font-weight: normal;
       	margin: 0px;
       }
+      
+      .directions {
+      	margin: 10px;
+      }
+      
          
 	</style>
 	<script type="text/javascript">
@@ -60,9 +67,24 @@
 				.append("h2")
 				.text('Academic Achievement Scores & Tech Use by Country');
 				
-			var subtext = d3.select('body')
-				.append('h5')
-				.text('Mouse over each country to get rates at which students use technology at school and home');
+			d3.select('body')
+				.append('h4')
+				.text('According to data collected from the 2012 PISA assessment, it\'s evident that students who have access to technology');
+					
+			d3.select('body')
+				.append('h4')
+				.text('tend to outperform their counterparts in math, science, and reading. On average, students with access to computer');
+			
+			d3.select('body')
+				.append('h4')
+				.text('and internet, at home or school, received 120% better overall scores than students without access.');
+			
+								
+			d3.select('body')
+				.append('div')
+				.attr('class', 'directions')
+				.append('h4')
+				.text('Mouse over the map to see this trend by country, and explore rates at which students use technology at school and home.');
 			
 			d3.select('body')
 				.append('h6')
