@@ -21,7 +21,7 @@ function draw(geo_data) {
 	
 	d3.select('body')
 		.append('h4')
-		.text('and internet, at home or school, received 120% better overall scores than students without access.');
+		.text('and internet, at home or school, received 20% better overall scores than students without access.');
 		
 	d3.select('body')
 		.append('h5')
