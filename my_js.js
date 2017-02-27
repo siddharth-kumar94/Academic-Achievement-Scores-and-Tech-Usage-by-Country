@@ -87,7 +87,7 @@ function draw(geo_data) {
 			return (d.toString() + '%');
 		})
 		.attr('stop-color', function(d) {
-			return d3.interpolateRdYlGn(d/100);
+			return d3.interpolateRdYlGn(1 - (d/100));
 		});
 		
 	var legendx = 35;
@@ -114,9 +114,9 @@ function draw(geo_data) {
 		.style('fill', "url(#gradient)");
 		
 	//Sets the position and text for legend labels
-	var legendLabels = [{label: 'Below', ypos: legendy + 4},
+	var legendLabels = [{label: 'Above', ypos: legendy + 4},
 		{label: 'Average', ypos: legendy + .5*legendHeight + 4},
-		{label:'Above', ypos: legendy + legendHeight + 4}];
+		{label:'Below', ypos: legendy + legendHeight + 4}];
 	
 	svg.append('g')
 		.selectAll('text')
